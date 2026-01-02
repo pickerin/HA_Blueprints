@@ -74,10 +74,10 @@ https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://ra
 ### 📄 Files
 
 - **Blueprint YAML**  
-  `blueprints/automation/pickerin/exhaust_fan_humidity_rise_auto_on_off.yaml`
+  `Automations/exhaust_fan_humidity_rise_auto_on_off.yaml`
 
 - **Documentation (recommended)**  
-  `blueprint_docs/exhaust_fan_humidity_rise_auto_on_off.md`  
+  `Automations/exhaust_fan_humidity_rise_auto_on_off.md`  
   *(if present — contains setup guidance and design notes)*
 
 ---
