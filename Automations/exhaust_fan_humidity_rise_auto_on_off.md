@@ -84,7 +84,8 @@ parameters:
 - Time window: LEAVE ALONE
 - Time unit: Minutes
 
-**Tuning advice:**
+# Tuning advice:
+## TL;DR
 - Fan starts too late → lower `rate_on_threshold`
 - Fan starts randomly → increase `rate_on_for`
 
