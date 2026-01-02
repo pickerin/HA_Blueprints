@@ -1,119 +1,83 @@
-# Home Assistant Blueprints
+# 🌬️ Home Assistant Blueprints by pickerin
 
-This repository contains **production-grade Home Assistant Blueprints** built and used in a real, long-running Home Assistant installation.
+This repository contains **Home Assistant Automation Blueprints** that I use in my own HAOS environment and am sharing with the community.
 
-These are not demo automations.
+These blueprints focus on **real-world reliability**, optional helpers, and avoiding fragile “magic numbers” wherever possible.
 
-They exist to solve recurring automation problems **correctly**, **predictably**, and **defensively**, while remaining reusable across rooms, devices, and households.
+Each blueprint consists of:
+- a `.yaml` file containing the blueprint logic
+- (optionally) a companion `.md` file with setup notes, rationale, and usage examples
 
-If you’ve ever rewritten the same automation five times with slightly different entity IDs—this repo is for you.
-
----
-
-## Design Philosophy
-
-These blueprints follow a few strict principles:
-
-### 1. Real-World First
-Every blueprint here is extracted from an automation that:
-- Ran for months (or years)
-- Survived reboots, sensor flaps, and entity renames
-- Handled edge cases like sleep hours, manual overrides, and device failures
-
-No theoretical YAML. No blog-post toys.
+If you want a smooth install and predictable behavior, **read the documentation** before importing.
 
 ---
 
-### 2. Optional Means Optional
-Most blueprints accept **optional helpers**:
-- Input booleans (latches, inhibit modes)
-- Timers (failsafes)
-- Derivative sensors (rate-of-change)
-- Schedule helpers
+## ⚙️ Feature Requests, Bugs, or Improvements?
 
-If you don’t provide them, the blueprint still works.
+Please use GitHub Issues — they help keep things organized and actionable:
 
-If you *do* provide them, behavior improves—never breaks.
+👉 **[Open an issue](https://github.com/pickerin/HA_Blueprints/issues/new/choose)**
 
----
-
-### 3. Rate Beats Threshold
-Absolute thresholds lie.
-
-Wherever possible, these blueprints prefer **rate-of-change sensors** (via the `derivative` platform) over raw values:
-- Humidity rise instead of humidity %
-- Power change instead of absolute wattage
-- State transitions instead of polling
-
-Fallback thresholds exist—but only as a last resort.
+When reporting a bug, include:
+- Home Assistant version
+- Blueprint version
+- Relevant entity IDs
+- What you expected vs. what happened
 
 ---
 
-### 4. Sleep, Quiet, and Human Context Matter
-Automations should not:
-- Wake people up
-- Fight manual actions
-- Run just because “a sensor changed”
+## 🫴 Support & Discussion
 
-Most blueprints support:
-- Sleep-hours inhibit
-- Latch booleans (to respect manual starts)
-- Time-based or presence-based suppression
+Questions and discussion are welcome — especially if you’re adapting a blueprint to your own setup.
 
-Automation should feel *intentional*, not robotic.
+- Use the relevant **Home Assistant Community** thread (linked per blueprint when available)
+- Or open a GitHub discussion / issue if it’s repo-specific
+
+If something here helped you, a ⭐ on the repo is always appreciated.
 
 ---
 
-### 5. Modern Home Assistant YAML Only
-This repository intentionally uses:
-- **Plural containers**: `triggers`, `conditions`, `actions`
-- **Singular discriminators** inside lists: `trigger`, `condition`, `action`
-- `notify.send_message` (not legacy notify service calls)
-- `choose:` instead of nested if-else templates
+## 🔃 Automation Blueprints
 
-Blueprints here target **Home Assistant 2025.x+**.
+### 🌬️ Exhaust Fan – Auto On/Off (Humidity + Rate + Optional Controls)
 
----
+This blueprint automatically controls an exhaust fan based on **humidity behavior**, not just static thresholds.
 
-## Blueprint Index
+It prefers a **humidity rate (derivative) sensor** when available, and falls back to absolute humidity thresholds if not.
 
-### 🚿 Exhaust Fan Automation
+#### Features
+- ✅ Auto-start fan when humidity is rising
+- ✅ Auto-stop when humidity normalizes
+- 💤 Optional *Sleep Hours* inhibit
+- 🚿 Optional *Shower Mode* latch to avoid interfering with manual use
+- ⏱ Optional max runtime timer failsafe
+- 🔄 Works with or without derivative sensors
 
-**Exhaust Fan – Auto On/Off (Humidity + Rate + Optional Helpers)**
+#### Requirements
+- A humidity sensor for the room
+- A switch entity controlling the exhaust fan
 
-Automatically controls bathroom / laundry exhaust fans using:
-- Humidity rise *rate* (preferred)
-- Fallback humidity thresholds
-- Optional shower latch
-- Optional sleep-hours inhibit
-- Optional max runtime timer
-
-**Why this exists:**  
-Humidity alone is noisy. This blueprint reacts to *behavior*, not numbers.
-
-**Supports:**
-- Multiple rooms
-- Manual fan usage
-- Nighttime suppression
-- Failsafe shutdowns
+Optional helpers are fully supported but **not required**.
 
 ---
 
-*(More blueprints will be added as patterns stabilize and repeat.)*
+### 📥 Install Blueprint
+
+Click the badge below to import directly into Home Assistant:
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](
+https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/pickerin/HA_Blueprints/main/blueprints/automation/pickerin/exhaust_fan_humidity_rise_auto_on_off.yaml
+)
 
 ---
 
-## Helper Patterns Used
+### 📄 Files
 
-Many blueprints rely on helpers you may not already use. These are intentional.
+- **Blueprint YAML**  
+  `blueprints/automation/pickerin/exhaust_fan_humidity_rise_auto_on_off.yaml`
 
-### Derivative Sensors (Strongly Recommended)
-Used to detect **rate of change**, not absolute values.
+- **Documentation (recommended)**  
+  `blueprint_docs/exhaust_fan_humidity_rise_auto_on_off.md`  
+  *(if present — contains setup guidance and design notes)*
 
-Example:
-```yaml
-sensor:
-  - platform: derivative
-    source: sensor.master_bathroom_humidity
-    name: master_bathroom_humidity_rate
-    unit_time: min
+---
