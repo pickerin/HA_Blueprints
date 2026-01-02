@@ -75,7 +75,14 @@ sensor:
     name: master_bathroom_humidity_rate
     unit_time: min
 
----
+```
+Alternatively, you can just create it with the Helper UI and these 
+parameters:
+- Name:  Whatever you want to call it
+- Input sensor: Your humidity sensor
+- Precision: 2
+- Time window: LEAVE ALONE
+- Time unit: Minutes
 
 **Tuning advice:**
 - Fan starts too late → lower `rate_on_threshold`
