@@ -142,7 +142,10 @@ blueprint:
 
     rate_on_for:
       name: Rate ON must hold for
-      default: "00:02:00"
+      default: 
+        hours: 0
+        minutes: 2
+        seconds: 0
       selector:
         duration: {}
 
@@ -169,7 +172,10 @@ blueprint:
 
     rate_off_for:
       name: Rate OFF must hold for
-      default: "00:05:00"
+      default:
+        hours: 0
+        minutes: 5
+        seconds: 0
       selector:
         duration: {}
 
@@ -197,7 +203,10 @@ blueprint:
 
     humidity_on_for:
       name: Humidity ON must hold for (fallback)
-      default: "00:02:00"
+      default:
+        hours: 0
+        minutes: 2
+        seconds: 0
       selector:
         duration: {}
 
@@ -214,7 +223,10 @@ blueprint:
 
     humidity_off_for:
       name: Humidity OFF must hold for (fallback)
-      default: "00:05:00"
+      default:
+        hours: 0
+        minutes: 5
+        seconds: 0
       selector:
         duration: {}
 
