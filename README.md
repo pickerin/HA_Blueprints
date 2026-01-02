@@ -66,7 +66,7 @@ Optional helpers are fully supported but **not required**.
 Click the badge below to import directly into Home Assistant:
 
 [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](
-https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/pickerin/HA_Blueprints/main/blueprints/automation/pickerin/exhaust_fan_humidity_rise_auto_on_off.yaml
+https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https://raw.githubusercontent.com/pickerin/HA_Blueprints/main/Automations/exhaust_fan_humidity_rise_auto_on_off.yaml
 )
 
 ---

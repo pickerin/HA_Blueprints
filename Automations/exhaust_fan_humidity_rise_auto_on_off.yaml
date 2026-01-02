@@ -72,7 +72,7 @@ blueprint:
     sleep-hours inhibit, and a max runtime timer.
 
   domain: automation
-  source_url: "https://github.com/pickering/HA_Blueprints/blob/main/blueprints/automation/pickerin/exhaust_fan_humidity_rise_auto_on_off.yaml"
+  source_url: "https://github.com/pickerin/HA_Blueprints/blob/main/Automations/exhaust_fan_humidity_rise_auto_on_off.yaml"
 
   input:
     fan_switch:
