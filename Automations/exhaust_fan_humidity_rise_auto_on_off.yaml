@@ -1,4 +1,4 @@
-# This Blueprint requires you've already have the following TWO sensors:
+# This Blueprint requires you already have the following TWO sensors:
 # •	Humidity sensor for the Fan being controlled:
 #   e.g. sensor.master_bathroom_humidity
 # •	Switch for the Exhaust Fan
@@ -241,26 +241,12 @@ variables:
   max_timer: !input max_run_timer
 
   rate_on: !input rate_on_threshold
-  rate_on_for: !input rate_on_for
   hum_min_start: !input humidity_min_to_start
-
   rate_off: !input rate_off_threshold
-  rate_off_for: !input rate_off_for
   hum_max_stop: !input humidity_max_to_stop
 
   hum_on: !input humidity_on_threshold
-  hum_on_for: !input humidity_on_for
   hum_off: !input humidity_off_threshold
-  hum_off_for: !input humidity_off_for
-
-  sleep_ok: >-
-    {{ sleep == '' or is_state(sleep, 'off') }}
-
-  latch_required_for_stop: >-
-    {{ latch != '' }}
-
-  latch_ok_for_stop: >-
-    {{ latch == '' or is_state(latch, 'on') }}
 
 triggers:
   # START: Rate mode (preferred) if rate sensor provided
@@ -268,7 +254,7 @@ triggers:
     id: start_rate
     value_template: >-
       {{ rate != ''
-         and sleep_ok
+         and (sleep == '' or is_state(sleep, 'off'))
          and (states(rate) | float(0)) > (rate_on | float(0))
          and (states(hum)  | float(0)) > (hum_min_start | float(0)) }}
     for: !input rate_on_for
@@ -278,7 +264,7 @@ triggers:
     id: start_humidity
     value_template: >-
       {{ rate == ''
-         and sleep_ok
+         and (sleep == '' or is_state(sleep, 'off'))
          and (states(hum) | float(0)) > (hum_on | float(0)) }}
     for: !input humidity_on_for
 
@@ -287,7 +273,7 @@ triggers:
     id: stop_rate
     value_template: >-
       {{ rate != ''
-         and latch_ok_for_stop
+         and (latch == '' or is_state(latch, 'on'))
          and (states(rate) | float(0)) < (rate_off | float(0))
          and (states(hum)  | float(0)) < (hum_max_stop | float(0)) }}
     for: !input rate_off_for
@@ -297,7 +283,7 @@ triggers:
     id: stop_humidity
     value_template: >-
       {{ rate == ''
-         and latch_ok_for_stop
+         and (latch == '' or is_state(latch, 'on'))
          and (states(hum) | float(0)) < (hum_off | float(0)) }}
     for: !input humidity_off_for
 
