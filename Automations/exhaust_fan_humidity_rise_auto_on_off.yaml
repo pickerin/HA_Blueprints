@@ -1,175 +1,103 @@
-# This Blueprint requires you already have the following TWO sensors:
-# •	Humidity sensor for the Fan being controlled:
-#   e.g. sensor.master_bathroom_humidity
-# •	Switch for the Exhaust Fan
-#   e.g. switch.master_bathroom_exhaust_fan
-# Optional, but highly recommended is a Derivative sensor for Humidity rate (see below):
-#   e.g. sensor.master_bathroom_humidity_rate
-# Note:  the derivative sensor is technically optional, but recommended
-#        the blueprint will still work, but it will be a set threshold
-# The following sensors are optional for additional features:
-# •	Input boolean to know if a shower is happening:
-#   e.g. input_boolean.master_bathroom_shower_mode
-# •	Timer sensor for Max exhaust fan run time:
-#   e.g. timer.master_bathroom_exhaust_max_time
-# •	Input boolean for Sleep hours being active (see below):
-#   e.g. input_boolean.sleep_hours_mode
-
-# Derivative Sensor
-# This sensor determines the RATE at which the humidity is rising, which is 
-# important, because humidity levels can change dramatically over a period of 
-# time, so absolute thresholds will always be flakey.  To create:
-# sensor:
-#   - platform: derivative
-#     source: sensor.master_bathroom_humidity
-#     name: master_bathroom_humidity_rate
-#     unit_time: min
-
-# Sleep Hours Mode
-# Humidity can change for a variety of reasons and *could* trip your exhaust fan (rain)
-# By creating a Sleep Hours Mode you can tell the automation to never run during certain
-# hours so exhaust fans coming on in the middle of the night don't wake you up.  
-# You can set this input_boolean however you want (or skip it), but I'm providing a 
-# sample automation you can use that will do it, based on a Schedule Helper that 
-# contains the hours you're normally sleeping:
-#
-# - id: sleep_hours_mode_from_schedule
-#   alias: Sleep Hours Mode – From Schedule
-#   description: Turn Sleep Hours Mode on/off based solely on the sleep schedule
-#   mode: single
-#   triggers:
-#     - trigger: state
-#       entity_id: schedule.sleep_hours
-#     - trigger: homeassistant
-#       event: start
-#   conditions: []
-#   actions:
-#     - choose:
-#         # Schedule turned ON → enable sleep hours mode
-#         - conditions:
-#             - condition: state
-#               entity_id: schedule.sleep_hours
-#               state: "on"
-#           sequence:
-#             - action: input_boolean.turn_on
-#               target:
-#                 entity_id: input_boolean.sleep_hours_mode
-#         # Schedule turned OFF → disable sleep hours mode
-#         - conditions:
-#             - condition: state
-#               entity_id: schedule.sleep_hours
-#               state: "off"
-#           sequence:
-#             - action: input_boolean.turn_off
-#               target:
-#                 entity_id: input_boolean.sleep_hours_mode
 blueprint:
   name: Exhaust Fan - Auto On/Off (Humidity + Optional Rate/Timer/Latch)
   description: >
-    Turns an exhaust fan ON when humidity is rising (via optional humidity_rate sensor) OR
-    falls back to humidity threshold if no rate sensor is provided.
-    Turns fan OFF when humidity normalizes, optionally using a latch boolean (shower_mode),
-    sleep-hours inhibit, and a max runtime timer.
+    Turns an exhaust fan ON when humidity is rising (via optional humidity_rate sensor)
+    OR falls back to humidity threshold if no rate sensor is provided. Turns fan OFF
+    when humidity normalizes, optionally using a latch boolean (shower_mode), sleep-hours
+    inhibit, and a max runtime timer.
+
+    CHANGE: shower_mode_boolean is always set ON/OFF when the start/stop logic is satisfied
+    (detection), even if sleep-hours inhibit prevents turning the fan on/off (actuation).
 
   domain: automation
-  source_url: "https://github.com/pickerin/HA_Blueprints/blob/main/Automations/exhaust_fan_humidity_rise_auto_on_off.yaml"
-
+  source_url: https://raw.githubusercontent.com/pickerin/HA_Blueprints/main/Automations/exhaust_fan_humidity_rise_auto_on_off.yaml
   input:
     fan_switch:
       name: Exhaust fan switch
       selector:
         entity:
-          domain: switch
-
+          domain: [switch]
     humidity_sensor:
       name: Humidity sensor (%)
       selector:
         entity:
-          domain: sensor
-
+          domain: [sensor]
     humidity_rate_sensor:
       name: Humidity rate sensor (optional)
       description: >
-        Optional derivative sensor like sensor.<room>_humidity_rate.
-        If omitted, the automation falls back to humidity thresholds.
+        Optional derivative sensor like sensor.<room>_humidity_rate. If omitted, the
+        automation falls back to humidity thresholds.
       default: ""
       selector:
         entity:
-          domain: sensor
-
+          domain: [sensor]
     sleep_hours_boolean:
       name: Sleep hours inhibit boolean (optional)
       description: >
-        If provided and ON, the automation will not auto-start the fan.
-        (It will still allow auto-stop behavior.)
+        If provided and ON, the automation will not actuate the fan (turn on/off),
+        but it will still set/clear the latch for debugging.
       default: ""
       selector:
         entity:
-          domain: input_boolean
-
+          domain: [input_boolean]
     shower_mode_boolean:
       name: Latch boolean / shower_mode (optional)
       description: >
-        If provided, the automation sets it ON when it turns the fan ON,
-        and requires it to be ON before it will auto-turn the fan OFF.
-        This helps avoid turning off a fan that was turned on manually.
+        If provided, the automation will set it ON when the start logic is satisfied,
+        and set it OFF when the stop logic is satisfied. Fan actuation is separately
+        gated by sleep-hours inhibit.
       default: ""
       selector:
         entity:
-          domain: input_boolean
-
+          domain: [input_boolean]
     max_run_timer:
       name: Max runtime timer (optional)
       description: >
-        If provided, starts the timer when fan turns on. When timer finishes,
+        If provided, starts the timer when fan is turned on. When timer finishes,
         fan is turned off and latch cleared.
       default: ""
       selector:
         entity:
-          domain: timer
+          domain: [timer]
 
-    # --- "Rate mode" thresholds (used when humidity_rate_sensor is provided)
     rate_on_threshold:
       name: Rate ON threshold
-      description: "Turn ON when humidity_rate > this value (and humidity above min)."
+      description: Turn ON when humidity_rate > this value (and humidity above min).
       default: 0.35
       selector:
         number:
-          min: 0
-          max: 5
+          min: 0.0
+          max: 5.0
           step: 0.01
           mode: box
-
     rate_on_for:
       name: Rate ON must hold for
-      default: 
+      default:
         hours: 0
         minutes: 2
         seconds: 0
       selector:
         duration: {}
-
     humidity_min_to_start:
       name: Minimum humidity to allow start (rate mode)
       default: 45
       selector:
         number:
-          min: 0
-          max: 100
-          step: 1
+          min: 0.0
+          max: 100.0
+          step: 1.0
           mode: box
 
     rate_off_threshold:
       name: Rate OFF threshold
-      description: "Turn OFF when humidity_rate < this value (and humidity below max)."
+      description: Turn OFF when humidity_rate < this value (and humidity below max).
       default: 0.05
       selector:
         number:
-          min: 0
-          max: 5
+          min: 0.0
+          max: 5.0
           step: 0.01
           mode: box
-
     rate_off_for:
       name: Rate OFF must hold for
       default:
@@ -178,29 +106,26 @@ blueprint:
         seconds: 0
       selector:
         duration: {}
-
     humidity_max_to_stop:
       name: Maximum humidity to allow stop (rate mode)
       default: 60
       selector:
         number:
-          min: 0
-          max: 100
-          step: 1
+          min: 0.0
+          max: 100.0
+          step: 1.0
           mode: box
 
-    # --- "Fallback humidity mode" thresholds (used when humidity_rate_sensor is NOT provided)
     humidity_on_threshold:
       name: Humidity ON threshold (fallback)
-      description: "If no rate sensor, turn ON when humidity > this threshold."
+      description: If no rate sensor, turn ON when humidity > this threshold.
       default: 55
       selector:
         number:
-          min: 0
-          max: 100
-          step: 1
+          min: 0.0
+          max: 100.0
+          step: 1.0
           mode: box
-
     humidity_on_for:
       name: Humidity ON must hold for (fallback)
       default:
@@ -212,15 +137,14 @@ blueprint:
 
     humidity_off_threshold:
       name: Humidity OFF threshold (fallback)
-      description: "If no rate sensor, turn OFF when humidity < this threshold."
+      description: If no rate sensor, turn OFF when humidity < this threshold.
       default: 50
       selector:
         number:
-          min: 0
-          max: 100
-          step: 1
+          min: 0.0
+          max: 100.0
+          step: 1.0
           mode: box
-
     humidity_off_for:
       name: Humidity OFF must hold for (fallback)
       default:
@@ -244,31 +168,31 @@ variables:
   hum_min_start: !input humidity_min_to_start
   rate_off: !input rate_off_threshold
   hum_max_stop: !input humidity_max_to_stop
-
   hum_on: !input humidity_on_threshold
   hum_off: !input humidity_off_threshold
 
+  # NEW: common "can actuate fan" gate (sleep must be off, or not provided)
+  can_actuate: "{{ sleep == '' or is_state(sleep, 'off') }}"
+
 triggers:
-  # START: Rate mode (preferred) if rate sensor provided
+  # CHANGE: removed sleep gating from *detection* triggers
   - trigger: template
     id: start_rate
     value_template: >-
       {{ rate != ''
-         and (sleep == '' or is_state(sleep, 'off'))
          and (states(rate) | float(0)) > (rate_on | float(0))
          and (states(hum)  | float(0)) > (hum_min_start | float(0)) }}
     for: !input rate_on_for
 
-  # START: Fallback humidity mode if no rate sensor
   - trigger: template
     id: start_humidity
     value_template: >-
       {{ rate == ''
-         and (sleep == '' or is_state(sleep, 'off'))
          and (states(hum) | float(0)) > (hum_on | float(0)) }}
     for: !input humidity_on_for
 
-  # STOP: Rate mode
+  # Stop triggers remain latch-protected (avoids turning off manually-run fan),
+  # but sleep does not block "debug latch clear"
   - trigger: template
     id: stop_rate
     value_template: >-
@@ -278,7 +202,6 @@ triggers:
          and (states(hum)  | float(0)) < (hum_max_stop | float(0)) }}
     for: !input rate_off_for
 
-  # STOP: Fallback humidity mode
   - trigger: template
     id: stop_humidity
     value_template: >-
@@ -287,7 +210,6 @@ triggers:
          and (states(hum) | float(0)) < (hum_off | float(0)) }}
     for: !input humidity_off_for
 
-  # STOP: Timer finished (optional) — we listen to all timer.finished and filter in actions
   - trigger: event
     id: timer_finished
     event_type: timer.finished
@@ -296,14 +218,14 @@ conditions: []
 
 actions:
   - choose:
-      # -------------------------
-      # START actions
-      # -------------------------
+
+      # START PATH
       - conditions:
           - condition: template
             value_template: "{{ trigger.id in ['start_rate', 'start_humidity'] }}"
         sequence:
-          # Optional latch on
+
+          # Always set latch ON as debug signal (if provided)
           - choose:
               - conditions:
                   - condition: template
@@ -313,35 +235,49 @@ actions:
                     target:
                       entity_id: "{{ latch }}"
 
-          # Fan on
-          - action: switch.turn_on
-            target:
-              entity_id: "{{ fan }}"
-
-          # Optional timer start
+          # Actuate fan + timer only if allowed (sleep off / not provided)
           - choose:
               - conditions:
                   - condition: template
-                    value_template: "{{ max_timer != '' }}"
+                    value_template: "{{ can_actuate }}"
                 sequence:
-                  - action: timer.start
+                  - action: switch.turn_on
                     target:
-                      entity_id: "{{ max_timer }}"
+                      entity_id: "{{ fan }}"
+                  - choose:
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ max_timer != '' }}"
+                        sequence:
+                          - action: timer.start
+                            target:
+                              entity_id: "{{ max_timer }}"
 
-      # -------------------------
-      # STOP actions (normalization)
-      # If latch boolean is provided, it must be ON to allow stop.
-      # If latch isn't provided, we allow stop based on thresholds.
-      # -------------------------
+      # STOP PATH
       - conditions:
           - condition: template
             value_template: "{{ trigger.id in ['stop_rate', 'stop_humidity'] }}"
         sequence:
-          - action: switch.turn_off
-            target:
-              entity_id: "{{ fan }}"
 
-          # Optional latch off
+          # Actuate fan off + cancel timer only if allowed (sleep off / not provided)
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ can_actuate }}"
+                sequence:
+                  - action: switch.turn_off
+                    target:
+                      entity_id: "{{ fan }}"
+                  - choose:
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ max_timer != '' }}"
+                        sequence:
+                          - action: timer.cancel
+                            target:
+                              entity_id: "{{ max_timer }}"
+
+          # Always clear latch OFF as debug signal (if provided)
           - choose:
               - conditions:
                   - condition: template
@@ -351,19 +287,7 @@ actions:
                     target:
                       entity_id: "{{ latch }}"
 
-          # Optional timer cancel
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ max_timer != '' }}"
-                sequence:
-                  - action: timer.cancel
-                    target:
-                      entity_id: "{{ max_timer }}"
-
-      # -------------------------
-      # STOP actions (failsafe timer)
-      # -------------------------
+      # TIMER FINISHED PATH (safety: still turns off regardless)
       - conditions:
           - condition: template
             value_template: >-
@@ -374,7 +298,6 @@ actions:
           - action: switch.turn_off
             target:
               entity_id: "{{ fan }}"
-
           - choose:
               - conditions:
                   - condition: template
