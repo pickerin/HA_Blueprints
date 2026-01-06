@@ -180,15 +180,18 @@ triggers:
     id: start_rate
     value_template: >-
       {{ rate != ''
-         and (states(rate) | float(0)) > (rate_on | float(0))
-         and (states(hum)  | float(0)) > (hum_min_start | float(0)) }}
+         and states[rate] is not none
+         and (states[rate].state | float(0)) > (rate_on | float(0))
+         and states[hum] is not none
+         and (states[hum].state  | float(0)) > (hum_min_start | float(0)) }}
     for: !input rate_on_for
 
   - trigger: template
     id: start_humidity
     value_template: >-
       {{ rate == ''
-         and (states(hum) | float(0)) > (hum_on | float(0)) }}
+         and states[hum] is not none
+         and (states[hum].state | float(0)) > (hum_on | float(0)) }}
     for: !input humidity_on_for
 
   # Stop triggers remain latch-protected (avoids turning off manually-run fan),
@@ -198,8 +201,10 @@ triggers:
     value_template: >-
       {{ rate != ''
          and (latch == '' or is_state(latch, 'on'))
-         and (states(rate) | float(0)) < (rate_off | float(0))
-         and (states(hum)  | float(0)) < (hum_max_stop | float(0)) }}
+         and states[rate] is not none
+         and (states[rate].state | float(0)) < (rate_off | float(0))
+         and states[hum] is not none
+         and (states[hum].state  | float(0)) < (hum_max_stop | float(0)) }}
     for: !input rate_off_for
 
   - trigger: template
@@ -207,7 +212,8 @@ triggers:
     value_template: >-
       {{ rate == ''
          and (latch == '' or is_state(latch, 'on'))
-         and (states(hum) | float(0)) < (hum_off | float(0)) }}
+         and states[hum] is not none
+         and (states[hum].state | float(0)) < (hum_off | float(0)) }}
     for: !input humidity_off_for
 
   - trigger: event
