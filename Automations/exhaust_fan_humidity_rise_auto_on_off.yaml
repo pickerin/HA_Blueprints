@@ -172,7 +172,7 @@ trigger_variables:
   hum_off: !input humidity_off_threshold
 
   # NEW: common "can actuate fan" gate (sleep must be off, or not provided)
-  can_actuate: "{{ sleep == '' or is_state(sleep, 'off') }}"
+  can_actuate: "{{ sleep == '' or states(sleep) == 'off' }}"
 
 triggers:
   # CHANGE: removed sleep gating from *detection* triggers
@@ -200,7 +200,7 @@ triggers:
     id: stop_rate
     value_template: >-
       {{ rate != ''
-         and (latch == '' or is_state(latch, 'on'))
+         and (latch == '' or states(latch) == 'on')
          and states[rate] is not none
          and (states[rate].state | float(0)) < (rate_off | float(0))
          and states[hum] is not none
@@ -211,7 +211,7 @@ triggers:
     id: stop_humidity
     value_template: >-
       {{ rate == ''
-         and (latch == '' or is_state(latch, 'on'))
+         and (latch == '' or states(latch) == 'on')
          and states[hum] is not none
          and (states[hum].state | float(0)) < (hum_off | float(0)) }}
     for: !input humidity_off_for
