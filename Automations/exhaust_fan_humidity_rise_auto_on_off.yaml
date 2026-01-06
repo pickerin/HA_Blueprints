@@ -156,7 +156,7 @@ blueprint:
 
 mode: single
 
-variables:
+trigger_variables:
   fan: !input fan_switch
   hum: !input humidity_sensor
   rate: !input humidity_rate_sensor
