@@ -171,6 +171,7 @@ trigger_variables:
   hum_on: !input humidity_on_threshold
   hum_off: !input humidity_off_threshold
 
+variables:
   # NEW: common "can actuate fan" gate (sleep must be off, or not provided)
   can_actuate: "{{ sleep == '' or states(sleep) == 'off' }}"
 
